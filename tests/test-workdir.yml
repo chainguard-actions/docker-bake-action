@@ -1,0 +1,62 @@
+name: Test bake with custom workdir
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      DOCKER_BUILD_SUMMARY: 'false'
+      DOCKER_BUILD_RECORD_UPLOAD: 'false'
+      BUILDX_NO_DEFAULT_ATTESTATIONS: '1'
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Set up Docker Buildx
+        run: |
+          docker buildx version || true
+          docker buildx create --use --name test-builder-workdir --driver docker-container || docker buildx use test-builder-workdir || true
+          docker buildx inspect --bootstrap || true
+
+      - name: Create workdir with bake definition
+        run: |
+          mkdir -p /tmp/bake-workdir-test
+          cat > /tmp/bake-workdir-test/Dockerfile <<'EOF'
+          FROM alpine:3.18
+          RUN echo "workdir test"
+          EOF
+          cat > /tmp/bake-workdir-test/docker-bake.hcl <<'EOF'
+          target "workdir-app" {
+            context = "/tmp/bake-workdir-test"
+            dockerfile = "Dockerfile"
+            tags = ["workdir-app:test"]
+            output = ["type=docker"]
+          }
+          EOF
+
+      - id: bake
+        uses: .
+        with:
+          workdir: /tmp/bake-workdir-test
+          targets: workdir-app
+          load: 'true'
+          source: '.'
+
+      - name: Assert image was loaded
+        run: |
+          echo "Checking if image was loaded into Docker daemon..."
+          if ! docker image inspect workdir-app:test > /dev/null 2>&1; then
+            echo "FAIL: image workdir-app:test not found in Docker daemon"
+            exit 1
+          fi
+          echo "PASS: image workdir-app:test found in Docker daemon"
+
+      - name: Assert metadata output
+        env:
+          METADATA: ${{ steps.bake.outputs.metadata }}
+        run: |
+          echo "metadata: $METADATA"
+          if [ -z "$METADATA" ]; then
+            echo "FAIL: metadata output is empty"
+            exit 1
+          fi
+          echo "PASS: metadata output is non-empty"

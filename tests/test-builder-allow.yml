@@ -1,0 +1,42 @@
+name: Test bake with builder and allow inputs
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      DOCKER_BUILD_SUMMARY: 'false'
+      DOCKER_BUILD_RECORD_UPLOAD: 'false'
+      BUILDX_NO_DEFAULT_ATTESTATIONS: '1'
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Set up Docker Buildx with named builder
+        run: |
+          docker buildx version || true
+          docker buildx create --name named-test-builder --driver docker-container || true
+          docker buildx inspect --builder named-test-builder --bootstrap || true
+
+      - name: Create bake definition file
+        run: |
+          mkdir -p /tmp/bake-builder-test
+          cat > /tmp/bake-builder-test/docker-bake.hcl <<'EOF'
+          target "hello" {
+            dockerfile-inline = "FROM alpine\nRUN echo hello"
+            output = ["type=cacheonly"]
+          }
+          EOF
+
+      - id: bake
+        uses: .
+        with:
+          workdir: /tmp/bake-builder-test
+          files: /tmp/bake-builder-test/docker-bake.hcl
+          targets: hello
+          builder: named-test-builder
+          allow: 'network.host'
+          source: '.'
+
+      - name: Assert bake with builder and allow inputs completed
+        run: |
+          echo "PASS: bake action with builder and allow inputs completed successfully"
