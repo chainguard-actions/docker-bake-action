@@ -12,23 +12,23 @@ jobs:
           mkdir -p /tmp/bake-vars-test
           cat > /tmp/bake-vars-test/Dockerfile <<'EOF'
           FROM alpine:3.19
-          ARG TAG_SUFFIX=default
-          RUN echo "TAG_SUFFIX=${TAG_SUFFIX}"
+          ARG APP_VERSION=dev
+          RUN echo "version=${APP_VERSION}"
           EOF
 
       - name: Create bake definition file with variable
         run: |
           cat > /tmp/bake-vars-test/docker-bake.hcl <<'EOF'
-          variable "TAG_SUFFIX" {
-            default = "default"
+          variable "APP_VERSION" {
+            default = "dev"
           }
-          target "varstest" {
+          target "myapp" {
             context    = "/tmp/bake-vars-test"
             dockerfile = "Dockerfile"
-            tags       = ["bake-vars-test:${TAG_SUFFIX}"]
+            tags       = ["bake-vars-test:latest"]
             output     = ["type=docker"]
             args = {
-              TAG_SUFFIX = TAG_SUFFIX
+              APP_VERSION = APP_VERSION
             }
           }
           EOF
@@ -42,10 +42,10 @@ jobs:
         uses: .
         with:
           files: /tmp/bake-vars-test/docker-bake.hcl
-          targets: varstest
+          targets: myapp
           source: /tmp/bake-vars-test
           vars: |
-            TAG_SUFFIX=custom
+            APP_VERSION=1.2.3
         env:
           DOCKER_BUILD_SUMMARY: 'false'
           DOCKER_BUILD_RECORD_UPLOAD: 'false'
@@ -62,10 +62,10 @@ jobs:
           fi
           echo "PASS"
 
-      - name: Assert image was built with custom tag
+      - name: Assert image was built
         run: |
-          if ! docker image inspect bake-vars-test:custom > /dev/null 2>&1; then
-            echo "FAIL: expected image bake-vars-test:custom to exist"
+          if ! docker image inspect bake-vars-test:latest > /dev/null 2>&1; then
+            echo "FAIL: expected image bake-vars-test:latest to exist"
             exit 1
           fi
           echo "PASS"

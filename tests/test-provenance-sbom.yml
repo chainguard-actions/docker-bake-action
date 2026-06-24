@@ -9,19 +9,19 @@ jobs:
 
       - name: Create bake Dockerfile
         run: |
-          mkdir -p /tmp/bake-prov-test
-          cat > /tmp/bake-prov-test/Dockerfile <<'EOF'
+          mkdir -p /tmp/bake-attest-test
+          cat > /tmp/bake-attest-test/Dockerfile <<'EOF'
           FROM alpine:3.19
-          RUN echo "provenance sbom test"
+          RUN echo "attestation test"
           EOF
 
       - name: Create bake definition file
         run: |
-          cat > /tmp/bake-prov-test/docker-bake.hcl <<'EOF'
-          target "provtest" {
-            context    = "/tmp/bake-prov-test"
+          cat > /tmp/bake-attest-test/docker-bake.hcl <<'EOF'
+          target "myapp" {
+            context    = "/tmp/bake-attest-test"
             dockerfile = "Dockerfile"
-            tags       = ["bake-prov-test:latest"]
+            tags       = ["bake-attest-test:latest"]
             output     = ["type=docker"]
           }
           EOF
@@ -34,9 +34,9 @@ jobs:
       - id: bake
         uses: .
         with:
-          files: /tmp/bake-prov-test/docker-bake.hcl
-          targets: provtest
-          source: /tmp/bake-prov-test
+          files: /tmp/bake-attest-test/docker-bake.hcl
+          targets: myapp
+          source: /tmp/bake-attest-test
           provenance: 'false'
           sbom: 'false'
         env:
@@ -57,8 +57,8 @@ jobs:
 
       - name: Assert image was built
         run: |
-          if ! docker image inspect bake-prov-test:latest > /dev/null 2>&1; then
-            echo "FAIL: expected image bake-prov-test:latest to exist"
+          if ! docker image inspect bake-attest-test:latest > /dev/null 2>&1; then
+            echo "FAIL: expected image bake-attest-test:latest to exist"
             exit 1
           fi
           echo "PASS"
