@@ -1,0 +1,42 @@
+name: Test bake with sbom input
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      DOCKER_BUILD_SUMMARY: 'false'
+      DOCKER_BUILD_RECORD_UPLOAD: 'false'
+      BUILDX_NO_DEFAULT_ATTESTATIONS: '1'
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Start local registry
+        run: docker run -d -p 5000:5000 --name registry registry:2
+
+      - id: bake
+        uses: .
+        with:
+          files: ${{ github.workspace }}/tests/fixtures/sbom/docker-bake.hcl
+          source: ${{ github.workspace }}/tests/fixtures/sbom
+          targets: sbomapp
+          provenance: 'false'
+          sbom: 'true'
+          set: |
+            sbomapp.tags=localhost:5000/sbomapp:test
+            sbomapp.output=type=registry
+
+      - name: Assert metadata output exists
+        env:
+          METADATA: ${{ steps.bake.outputs.metadata }}
+        run: |
+          echo "metadata: $METADATA"
+          if [ -z "$METADATA" ]; then
+            echo "FAIL: expected metadata output to be non-empty"
+            exit 1
+          fi
+          echo "PASS"
+
+      - name: Cleanup registry
+        if: always()
+        run: docker rm -f registry || true

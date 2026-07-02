@@ -1,0 +1,43 @@
+name: Test bake with vars input
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      DOCKER_BUILD_SUMMARY: 'false'
+      DOCKER_BUILD_RECORD_UPLOAD: 'false'
+      BUILDX_NO_DEFAULT_ATTESTATIONS: '1'
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: bake
+        uses: .
+        with:
+          files: ${{ github.workspace }}/tests/fixtures/vars/docker-bake.hcl
+          source: ${{ github.workspace }}/tests/fixtures/vars
+          targets: varsapp
+          load: 'true'
+          provenance: 'false'
+          vars: |
+            VERSION=1.2.3
+            APP_NAME=testapp
+
+      - name: Assert metadata output exists
+        env:
+          METADATA: ${{ steps.bake.outputs.metadata }}
+        run: |
+          echo "metadata: $METADATA"
+          if [ -z "$METADATA" ]; then
+            echo "FAIL: expected metadata output to be non-empty"
+            exit 1
+          fi
+          echo "PASS"
+
+      - name: Assert image with variable-substituted tag was loaded
+        run: |
+          if ! docker image inspect testapp:1.2.3 > /dev/null 2>&1; then
+            echo "FAIL: expected image testapp:1.2.3 to be present"
+            exit 1
+          fi
+          echo "PASS: image testapp:1.2.3 found"

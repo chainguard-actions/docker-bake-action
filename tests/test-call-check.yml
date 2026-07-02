@@ -1,0 +1,24 @@
+name: Test bake call check
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      DOCKER_BUILD_SUMMARY: 'false'
+      DOCKER_BUILD_RECORD_UPLOAD: 'false'
+      BUILDX_NO_DEFAULT_ATTESTATIONS: '1'
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: bake
+        uses: .
+        with:
+          files: ${{ github.workspace }}/tests/fixtures/call-check/docker-bake.hcl
+          source: ${{ github.workspace }}/tests/fixtures/call-check
+          targets: checkme
+          call: check
+
+      - name: Assert step completed successfully
+        run: |
+          echo "PASS: bake call=check completed without error"
