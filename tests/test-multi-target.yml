@@ -1,0 +1,58 @@
+name: Test bake with multiple targets
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Set up Docker Buildx
+        run: |
+          docker buildx version
+          docker buildx create --use --name mybuilder --driver docker-container 2>/dev/null || true
+          docker buildx inspect --bootstrap
+
+      - id: bake
+        uses: .
+        with:
+          source: ${{ github.workspace }}/tests/fixtures/multi
+          targets: |
+            app1
+            app2
+          load: 'true'
+          no-cache: 'true'
+          provenance: 'false'
+        env:
+          BUILDX_NO_DEFAULT_ATTESTATIONS: 'true'
+          DOCKER_BUILD_SUMMARY: 'false'
+          DOCKER_BUILD_RECORD_UPLOAD: 'false'
+
+      - name: Assert app1 image was built
+        run: |
+          echo "Checking if app1 image exists..."
+          if ! docker image inspect bake-multi-app1:latest > /dev/null 2>&1; then
+            echo "FAIL: expected image 'bake-multi-app1:latest' not found"
+            exit 1
+          fi
+          echo "PASS: image bake-multi-app1:latest exists"
+
+      - name: Assert app2 image was built
+        run: |
+          echo "Checking if app2 image exists..."
+          if ! docker image inspect bake-multi-app2:latest > /dev/null 2>&1; then
+            echo "FAIL: expected image 'bake-multi-app2:latest' not found"
+            exit 1
+          fi
+          echo "PASS: image bake-multi-app2:latest exists"
+
+      - name: Assert metadata output is present
+        env:
+          METADATA: ${{ steps.bake.outputs.metadata }}
+        run: |
+          echo "metadata: $METADATA"
+          if [ -z "$METADATA" ]; then
+            echo "FAIL: metadata output is empty"
+            exit 1
+          fi
+          echo "PASS: metadata output is non-empty"
