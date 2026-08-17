@@ -8,6 +8,7 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 
 | Version | Tag | Upstream commit |
 |---------|-----|-----------------|
+| v6.10.0 | [`v6.10.0`](https://github.com/chainguard-actions/docker-bake-action/tree/v6.10.0) | [`5be5f02`](https://github.com/docker/bake-action/commit/5be5f02ff8819ecd3092ea6b2e6261c31774f2b4) |
 | v6.9.0 | [`v6.9.0`](https://github.com/chainguard-actions/docker-bake-action/tree/v6.9.0) | [`3acf805`](https://github.com/docker/bake-action/commit/3acf805d94d93a86cce4ca44798a76464a75b88c) |
 | v7.2.0 | [`v7.2.0`](https://github.com/chainguard-actions/docker-bake-action/tree/v7.2.0) | [`6614cfa`](https://github.com/docker/bake-action/commit/6614cfa25eff9a0b2b2697efb0b6159e7680d584) |
 | v7.3.0 | [`v7.3.0`](https://github.com/chainguard-actions/docker-bake-action/tree/v7.3.0) | [`d3418bd`](https://github.com/docker/bake-action/commit/d3418bd7d0e9324001bca92fa8ba175ea7e6dc9b) |
