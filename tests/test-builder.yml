@@ -1,4 +1,4 @@
-name: Test bake with vars input
+name: Test bake with builder input
 on:
   workflow_dispatch:
 
@@ -8,22 +8,23 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Set up Docker Buildx
+      - name: Set up named Docker Buildx builder
+        id: setup-builder
         uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3.10.0
         with:
           driver: docker
+          install: true
 
       - id: bake
-        name: Run bake action with vars input
+        name: Run bake action with explicit builder input
         uses: .
         with:
           source: .
-          files: tests/fixtures/vars/docker-bake.hcl
-          targets: varsapp
+          files: tests/fixtures/builder/docker-bake.hcl
+          targets: builderapp
           load: 'true'
           no-cache: 'true'
-          vars: |
-            APP_VERSION=1.2.3
+          builder: ${{ steps.setup-builder.outputs.name }}
         env:
           DOCKER_BUILD_SUMMARY: 'false'
           DOCKER_BUILD_RECORD_UPLOAD: 'false'
@@ -40,10 +41,10 @@ jobs:
           fi
           echo "PASS: metadata output is present"
 
-      - name: Assert image with variable-derived tag exists in Docker
+      - name: Assert built image exists in Docker
         run: |
-          if ! docker image inspect varsapp:1.2.3 > /dev/null 2>&1; then
-            echo "FAIL: expected image varsapp:1.2.3 to be loaded (vars override not applied)"
+          if ! docker image inspect builderapp:test > /dev/null 2>&1; then
+            echo "FAIL: expected image builderapp:test to be loaded into Docker"
             exit 1
           fi
-          echo "PASS: image varsapp:1.2.3 found in Docker (vars override applied)"
+          echo "PASS: image builderapp:test found in Docker"

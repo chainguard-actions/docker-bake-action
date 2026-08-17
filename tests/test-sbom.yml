@@ -1,4 +1,4 @@
-name: Test basic bake build
+name: Test bake with sbom input
 on:
   workflow_dispatch:
 
@@ -9,17 +9,24 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd # v4.0.0
+        uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3.10.0
+        with:
+          driver: docker
 
       - id: bake
-        name: Run bake action
+        name: Run bake action with sbom disabled
         uses: .
         with:
           source: .
-          files: tests/fixtures/basic/docker-bake.hcl
-          targets: myapp
+          files: tests/fixtures/sbom/docker-bake.hcl
+          targets: sbomapp
           load: 'true'
           no-cache: 'true'
+          sbom: 'false'
+        env:
+          DOCKER_BUILD_SUMMARY: 'false'
+          DOCKER_BUILD_RECORD_UPLOAD: 'false'
+          BUILDX_NO_DEFAULT_ATTESTATIONS: 'true'
 
       - name: Assert metadata output is non-empty
         env:
@@ -34,8 +41,8 @@ jobs:
 
       - name: Assert built image exists in Docker
         run: |
-          if ! docker image inspect myapp:test > /dev/null 2>&1; then
-            echo "FAIL: expected image myapp:test to be loaded into Docker"
+          if ! docker image inspect sbomapp:test > /dev/null 2>&1; then
+            echo "FAIL: expected image sbomapp:test to be loaded into Docker"
             exit 1
           fi
-          echo "PASS: image myapp:test found in Docker"
+          echo "PASS: image sbomapp:test found in Docker"
