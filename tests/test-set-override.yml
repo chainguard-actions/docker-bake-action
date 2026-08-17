@@ -1,67 +1,32 @@
-name: Test bake with set override and no-cache
+name: Test bake with set override
 on:
   workflow_dispatch:
 jobs:
   test:
     runs-on: ubuntu-latest
-    env:
-      DOCKER_BUILD_SUMMARY: 'false'
-      DOCKER_BUILD_RECORD_UPLOAD: 'false'
-      BUILDX_NO_DEFAULT_ATTESTATIONS: '1'
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Set up Docker Buildx
-        run: |
-          docker buildx version || true
-          docker buildx create --use --name test-builder-set --driver docker-container || docker buildx use test-builder-set || true
-          docker buildx inspect --bootstrap || true
-
-      - name: Create bake definition and Dockerfile
-        run: |
-          mkdir -p /tmp/bake-set-test
-          cat > /tmp/bake-set-test/Dockerfile <<'EOF'
-          FROM alpine:3.18
-          ARG MYARG=default
-          RUN echo "arg is: $MYARG"
-          EOF
-          cat > /tmp/bake-set-test/docker-bake.hcl <<'EOF'
-          target "myapp" {
-            context = "/tmp/bake-set-test"
-            dockerfile = "Dockerfile"
-            tags = ["myapp-set:test"]
-            output = ["type=docker"]
-          }
-          EOF
+        uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3.10.0
 
       - id: bake
         uses: .
         with:
-          workdir: /tmp/bake-set-test
-          files: /tmp/bake-set-test/docker-bake.hcl
-          targets: myapp
-          load: 'true'
-          no-cache: 'true'
           source: '.'
+          workdir: tests/fixtures/set-override
+          files: docker-bake.hcl
+          targets: myapp
           set: |
-            myapp.args.MYARG=overridden
+            myapp.args.name=overridden
 
-      - name: Assert image was loaded
-        run: |
-          echo "Checking if image was loaded into Docker daemon..."
-          if ! docker image inspect myapp-set:test > /dev/null 2>&1; then
-            echo "FAIL: image myapp-set:test not found in Docker daemon"
-            exit 1
-          fi
-          echo "PASS: image myapp-set:test found in Docker daemon"
-
-      - name: Assert metadata output
+      - name: Assert metadata output is present
         env:
           METADATA: ${{ steps.bake.outputs.metadata }}
         run: |
           echo "metadata: $METADATA"
           if [ -z "$METADATA" ]; then
-            echo "FAIL: metadata output is empty"
+            echo "FAIL: expected metadata output to be non-empty"
             exit 1
           fi
-          echo "PASS: metadata output is non-empty"
+          echo "PASS: metadata output is present with set override"

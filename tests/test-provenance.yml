@@ -1,9 +1,13 @@
-name: Test bake with multiple files
+name: Test bake with provenance input
 on:
   workflow_dispatch:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      DOCKER_BUILD_SUMMARY: 'false'
+      DOCKER_BUILD_RECORD_UPLOAD: 'false'
+      BUILDX_NO_DEFAULT_ATTESTATIONS: '1'
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
@@ -14,11 +18,10 @@ jobs:
         uses: .
         with:
           source: '.'
-          workdir: tests/fixtures/multi-files
-          files: |
-            base.hcl
-            override.hcl
-          targets: multiapp
+          workdir: hardened/tests/fixtures/provenance
+          files: docker-bake.hcl
+          targets: myapp
+          provenance: 'false'
 
       - name: Assert metadata output is present
         env:
@@ -29,4 +32,4 @@ jobs:
             echo "FAIL: expected metadata output to be non-empty"
             exit 1
           fi
-          echo "PASS: metadata output is present with multiple files"
+          echo "PASS: metadata output is present with provenance=false"

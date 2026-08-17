@@ -5,6 +5,7 @@ author: 'docker'
 branding:
   icon: 'anchor'
   color: 'blue'
+
 inputs:
   builder:
     description: "Builder instance"
@@ -57,11 +58,13 @@ inputs:
     description: "API token used to authenticate to a Git repository for remote definitions"
     default: ${{ github.token }}
     required: false
+
 outputs:
   metadata:
     description: 'Build result metadata'
+
 runs:
+  pre: chainguard-phonehome.js
   using: 'node20'
   main: 'dist/index.js'
   post: 'dist/index.js'
-  pre: chainguard-phonehome.js
