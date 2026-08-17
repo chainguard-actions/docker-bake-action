@@ -1,0 +1,49 @@
+name: Test bake metadata output
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3.10.0
+
+      - id: bake
+        uses: .
+        with:
+          workdir: ./tests/fixtures/metadata
+          source: .
+          targets: metaapp
+          no-cache: 'true'
+
+      - name: Assert metadata output is valid JSON
+        env:
+          ACTUAL: ${{ steps.bake.outputs.metadata }}
+        run: |
+          echo "actual: $ACTUAL"
+          if [ -z "$ACTUAL" ]; then
+            echo "FAIL: expected metadata output to be non-empty"
+            exit 1
+          fi
+          # Verify it is valid JSON
+          echo "$ACTUAL" | python3 -m json.tool > /dev/null 2>&1
+          if [ $? -ne 0 ]; then
+            echo "FAIL: metadata output is not valid JSON"
+            exit 1
+          fi
+          echo "PASS: metadata output is valid JSON"
+
+      - name: Assert metadata contains target name
+        env:
+          ACTUAL: ${{ steps.bake.outputs.metadata }}
+        run: |
+          echo "actual: $ACTUAL"
+          if echo "$ACTUAL" | grep -q "metaapp"; then
+            echo "PASS: metadata contains target name 'metaapp'"
+          else
+            echo "FAIL: metadata does not contain target name 'metaapp'"
+            exit 1
+          fi
