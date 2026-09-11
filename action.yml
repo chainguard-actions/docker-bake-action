@@ -63,7 +63,6 @@ outputs:
     description: 'Build result metadata'
 
 runs:
-  pre: chainguard-phonehome.js
   using: 'node24'
   main: 'dist/index.cjs'
   post: 'dist/index.cjs'

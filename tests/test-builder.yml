@@ -12,10 +12,9 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Create custom builder
-        id: create-builder
         run: |
-          docker buildx create --name custom-test-builder --use
-          echo "name=custom-test-builder" >> $GITHUB_OUTPUT
+          docker buildx create --name test-builder --use
+          docker buildx inspect --bootstrap test-builder
 
       - id: bake
         uses: .
@@ -23,7 +22,7 @@ jobs:
           files: ${{ github.workspace }}/tests/fixtures/builder/docker-bake.hcl
           source: ${{ github.workspace }}/tests/fixtures/builder
           targets: builderapp
-          builder: custom-test-builder
+          builder: test-builder
           load: 'true'
           provenance: 'false'
 
@@ -46,6 +45,6 @@ jobs:
           fi
           echo "PASS: image builderapp:test found"
 
-      - name: Cleanup custom builder
+      - name: Cleanup builder
         if: always()
-        run: docker buildx rm custom-test-builder || true
+        run: docker buildx rm test-builder || true

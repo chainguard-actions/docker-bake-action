@@ -1,5 +1,5 @@
-target "netapp" {
+target "allowapp" {
   context = "."
   dockerfile-inline = "FROM alpine:3.19\nRUN echo hello"
-  tags = ["netapp:test"]
+  tags = ["allowapp:test"]
 }

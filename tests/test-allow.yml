@@ -16,7 +16,7 @@ jobs:
         with:
           files: ${{ github.workspace }}/tests/fixtures/allow/docker-bake.hcl
           source: ${{ github.workspace }}/tests/fixtures/allow
-          targets: netapp
+          targets: allowapp
           load: 'true'
           provenance: 'false'
           allow: network.host
@@ -34,8 +34,8 @@ jobs:
 
       - name: Assert image was loaded
         run: |
-          if ! docker image inspect netapp:test > /dev/null 2>&1; then
-            echo "FAIL: expected image netapp:test to be present"
+          if ! docker image inspect allowapp:test > /dev/null 2>&1; then
+            echo "FAIL: expected image allowapp:test to be present"
             exit 1
           fi
-          echo "PASS: image netapp:test found"
+          echo "PASS: image allowapp:test found"
