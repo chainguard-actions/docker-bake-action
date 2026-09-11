@@ -1,0 +1,46 @@
+name: Test docker bake with call input
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Set up Docker Buildx
+        run: |
+          docker buildx version
+          docker buildx ls
+
+      - name: Create a simple bake file
+        run: |
+          cat > $GITHUB_WORKSPACE/docker-bake-call.hcl << 'EOF'
+          target "app" {
+            dockerfile-inline = "FROM alpine:3.18\nRUN echo hello"
+            tags = ["myapp:call-test"]
+          }
+          EOF
+
+      - id: bake
+        uses: .
+        with:
+          files: docker-bake-call.hcl
+          targets: app
+          call: check
+          push: 'false'
+          source: ${{ github.workspace }}
+        env:
+          BUILDX_NO_DEFAULT_ATTESTATIONS: '1'
+          DOCKER_BUILD_SUMMARY: 'false'
+          DOCKER_BUILD_RECORD_UPLOAD: 'false'
+
+      - name: Assert bake call check completed
+        env:
+          OUTCOME: ${{ steps.bake.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          if [ "$OUTCOME" != "success" ]; then
+            echo "FAIL: expected bake call=check to succeed, got: $OUTCOME"
+            exit 1
+          fi
+          echo "PASS: bake call=check succeeded"

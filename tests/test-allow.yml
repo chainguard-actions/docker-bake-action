@@ -1,0 +1,55 @@
+name: Test docker bake with allow input
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Set up Docker Buildx
+        run: |
+          docker buildx version
+          docker buildx ls
+
+      - name: Create a simple bake file
+        run: |
+          cat > $GITHUB_WORKSPACE/docker-bake-allow.hcl << 'EOF'
+          target "app" {
+            dockerfile-inline = "FROM alpine:3.18\nRUN echo hello"
+            tags = ["myapp:allow-test"]
+          }
+          EOF
+
+      - id: bake
+        uses: .
+        with:
+          files: docker-bake-allow.hcl
+          targets: app
+          load: 'true'
+          push: 'false'
+          allow: network.host
+          source: ${{ github.workspace }}
+        env:
+          BUILDX_NO_DEFAULT_ATTESTATIONS: '1'
+          DOCKER_BUILD_SUMMARY: 'false'
+          DOCKER_BUILD_RECORD_UPLOAD: 'false'
+
+      - name: Assert metadata output exists
+        env:
+          METADATA: ${{ steps.bake.outputs.metadata }}
+        run: |
+          echo "metadata: $METADATA"
+          if [ -z "$METADATA" ]; then
+            echo "FAIL: expected metadata output to be non-empty"
+            exit 1
+          fi
+          echo "PASS"
+
+      - name: Assert image was loaded
+        run: |
+          if ! docker image inspect myapp:allow-test > /dev/null 2>&1; then
+            echo "FAIL: expected image myapp:allow-test to be present"
+            exit 1
+          fi
+          echo "PASS: image myapp:allow-test found"
