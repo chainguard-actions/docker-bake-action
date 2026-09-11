@@ -21,7 +21,7 @@ jobs:
           workdir: hardened/tests/fixtures/allow
           files: docker-bake.hcl
           targets: myapp
-          allow: 'network.host'
+          allow: network.host
 
       - name: Assert metadata output is present
         env:
