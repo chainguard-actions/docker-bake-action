@@ -1,2 +1,2 @@
 FROM alpine:3.19
-RUN echo "Builder test build"
+RUN echo "builder test image"

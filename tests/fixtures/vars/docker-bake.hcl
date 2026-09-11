@@ -1,5 +1,5 @@
 variable "APP_VERSION" {
-  default = "0.0.0"
+  default = "dev"
 }
 
 group "default" {

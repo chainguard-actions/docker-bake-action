@@ -1,2 +1,2 @@
 FROM alpine:3.19
-RUN echo "Allow test build"
+RUN echo "allow test image"
