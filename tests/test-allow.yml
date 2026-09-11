@@ -15,10 +15,25 @@ jobs:
         with:
           files: tests/fixtures/bake/docker-bake.hcl
           targets: app
-          call: check
-          allow: network.host
+          load: 'true'
           source: .
+          allow: 'network.host'
 
-      - name: Assert action completed without failure
+      - name: Assert metadata output is set
+        env:
+          METADATA: ${{ steps.bake.outputs.metadata }}
         run: |
-          echo "PASS: bake with allow=network.host completed successfully"
+          echo "metadata: $METADATA"
+          if [ -z "$METADATA" ]; then
+            echo "FAIL: expected metadata output to be non-empty"
+            exit 1
+          fi
+          echo "PASS: metadata output is present (allow input accepted)"
+
+      - name: Assert built image exists
+        run: |
+          if ! docker image inspect bake-test-app:latest > /dev/null 2>&1; then
+            echo "FAIL: expected image bake-test-app:latest to exist in Docker daemon"
+            exit 1
+          fi
+          echo "PASS: image bake-test-app:latest exists"
