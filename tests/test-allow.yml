@@ -18,7 +18,7 @@ jobs:
           source: .
           targets: allowapp
           no-cache: 'true'
-          allow: network.host
+          allow: 'network.host'
 
       - name: Assert metadata output is present
         env:
