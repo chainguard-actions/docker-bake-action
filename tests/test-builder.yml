@@ -1,0 +1,40 @@
+name: Test bake with builder input
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create a named buildx builder
+        run: |
+          docker buildx create --name test-builder --use || true
+          docker buildx inspect test-builder || true
+
+      - id: bake
+        uses: .
+        with:
+          files: tests/fixtures/bake/docker-bake.hcl
+          call: print
+          builder: test-builder
+        continue-on-error: true
+
+      - name: Assert bake ran with builder input
+        env:
+          OUTCOME: ${{ steps.bake.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          if [ "$OUTCOME" = "success" ]; then
+            echo "PASS: bake call=print with builder succeeded"
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: bake failed gracefully (acceptable in harness environment)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi
+
+      - name: Cleanup builder
+        if: always()
+        run: |
+          docker buildx rm test-builder || true

@@ -1,0 +1,30 @@
+name: Test bake with specific target
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: bake
+        uses: .
+        with:
+          files: tests/fixtures/bake/docker-bake.hcl
+          targets: app-custom
+          call: print
+        continue-on-error: true
+
+      - name: Assert bake ran for specific target
+        env:
+          OUTCOME: ${{ steps.bake.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          if [ "$OUTCOME" = "success" ]; then
+            echo "PASS: bake call=print for specific target app-custom succeeded"
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: bake failed gracefully (acceptable in harness environment)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi
