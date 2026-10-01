@@ -14,29 +14,19 @@ jobs:
       - id: bake
         uses: .
         with:
-          workdir: ./tests/fixtures/attestation
+          workdir: ./tests/fixtures/allow
           source: .
-          targets: attestapp
+          targets: allowapp
           no-cache: 'true'
-          allow: 'network.host'
-        continue-on-error: true
+          allow: 'fs.read'
 
-      - name: Assert bake ran with allow input
+      - name: Assert metadata output is present
         env:
-          OUTCOME: ${{ steps.bake.outcome }}
           ACTUAL: ${{ steps.bake.outputs.metadata }}
         run: |
-          echo "outcome: $OUTCOME"
           echo "actual: $ACTUAL"
-          if [ "$OUTCOME" = "success" ]; then
-            if [ -z "$ACTUAL" ]; then
-              echo "FAIL: action succeeded but metadata output is empty"
-              exit 1
-            fi
-            echo "PASS: bake succeeded with allow=network.host"
-          elif [ "$OUTCOME" = "failure" ]; then
-            echo "PASS: bake failed gracefully (network.host may be restricted in this environment)"
-          else
-            echo "FAIL: unexpected outcome '$OUTCOME'"
+          if [ -z "$ACTUAL" ]; then
+            echo "FAIL: expected metadata output to be non-empty"
             exit 1
           fi
+          echo "PASS: metadata output is present with allow=fs.read"

@@ -12,15 +12,14 @@ jobs:
         id: buildx
         uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3.10.0
         with:
-          driver: docker-container
           install: true
 
       - id: bake
         uses: .
         with:
-          workdir: ./tests/fixtures/attestation
+          workdir: ./tests/fixtures/builder
           source: .
-          targets: attestapp
+          targets: builderapp
           no-cache: 'true'
           builder: ${{ steps.buildx.outputs.name }}
 
