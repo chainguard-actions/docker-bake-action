@@ -16,12 +16,12 @@ Action **docker--bake-action/v6.10.0** was hardened automatically. 1 finding(s) 
 
 ### unpinned-uses (severity: high)
 
-Both subaction composite action files reference `actions/github-script@v7`, which is a mutable version tag rather than a pinned 40-character commit SHA. This means the action could silently pull in a different (potentially malicious) version of the dependency if the tag is moved. Each `uses:` line should be pinned to a full SHA, e.g. `actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7`.
+Both subaction composite actions reference `actions/github-script@v7`, which is a mutable tag rather than a full 40-character commit SHA. This means the action could silently pull in a different (potentially malicious) version of the dependency if the tag is moved. It should be pinned to a specific commit SHA, e.g. `actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7`.
 
 Locations:
 
-- `subaction/list-targets/action.yml:26`
-- `subaction/matrix/action.yml:28`
+- `subaction/list-targets/action.yml:27`
+- `subaction/matrix/action.yml:29`
 
 ## Iteration Notes
 
@@ -31,5 +31,5 @@ Locations:
 
 **Notes:**
 
-Pinned `actions/github-script@v7` to `actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7` in both `subaction/list-targets/action.yml` (line 26) and `subaction/matrix/action.yml` (line 28).
+Pinned `actions/github-script@v7` to its full commit SHA `f28e40c7f34bde8b3046d885e986cb6290c5673b` in both `subaction/list-targets/action.yml` (line 27) and `subaction/matrix/action.yml` (line 29). The original tag is preserved as an inline comment (`# v7`) for readability.
 

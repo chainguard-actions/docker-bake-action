@@ -14,9 +14,9 @@ jobs:
       - id: bake
         uses: .
         with:
-          workdir: ./tests/fixtures/sbom
+          workdir: ./tests/fixtures/attestation
           source: .
-          targets: sbomapp
+          targets: attestapp
           no-cache: 'true'
           sbom: 'false'
 

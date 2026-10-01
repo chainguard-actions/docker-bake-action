@@ -14,9 +14,9 @@ jobs:
       - id: bake
         uses: .
         with:
-          workdir: ./tests/fixtures/provenance
+          workdir: ./tests/fixtures/attestation
           source: .
-          targets: provapp
+          targets: attestapp
           no-cache: 'true'
           provenance: 'false'
 

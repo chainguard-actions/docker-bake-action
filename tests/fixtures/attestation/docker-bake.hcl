@@ -1,6 +1,6 @@
-target "sbomapp" {
+target "attestapp" {
   context    = "."
   dockerfile = "Dockerfile"
-  tags       = ["sbomapp:test"]
+  tags       = ["attestapp:test"]
   output     = ["type=cacheonly"]
 }
