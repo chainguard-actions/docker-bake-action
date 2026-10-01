@@ -21,8 +21,8 @@ jobs:
           source: .
           files: tests/fixtures/simple/docker-bake.hcl
           targets: app
-          load: 'true'
           builder: ${{ steps.buildx.outputs.name }}
+          load: 'true'
           set: |
             app.tags=test-bake-builder:local
 

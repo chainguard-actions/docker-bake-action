@@ -16,11 +16,11 @@ Action **docker--bake-action/v7.1.0** was hardened automatically. 1 finding(s) w
 
 ### unpinned-uses (severity: high)
 
-The composite action step in subaction/matrix/action.yml references `actions/github-script@v8`, which is pinned to a mutable version tag (`@v8`) rather than an immutable 40-character commit SHA. This means the action could be silently updated or compromised without the consuming workflow noticing, enabling a supply-chain attack.
+The composite action step uses `actions/github-script@v8`, which is a mutable tag reference rather than a pinned 40-character commit SHA. If the tag is moved (e.g., by a supply-chain compromise), the action will silently execute different code. Pin to a full SHA, e.g. `actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7` or the equivalent v8 SHA.
 
 Locations:
 
-- `subaction/matrix/action.yml:29`
+- `subaction/matrix/action.yml:27`
 
 ## Iteration Notes
 
@@ -30,5 +30,5 @@ Locations:
 
 **Notes:**
 
-Pinned `actions/github-script@v8` to the full commit SHA `actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8` in `hardened/action/subaction/matrix/action.yml` (line 29). SHA was resolved via lookup_action_sha.
+Pinned `actions/github-script@v8` to its full commit SHA `ed597411d8f924073f98dfc5c65a23a2325f34cd` in `hardened/action/subaction/matrix/action.yml` (line 27). The original tag is preserved as a comment: `# v8`.
 
