@@ -1,2 +1,3 @@
 FROM alpine:3.19
-RUN echo "provenance test image"
+ARG app_version=dev
+RUN echo "version: ${app_version}"

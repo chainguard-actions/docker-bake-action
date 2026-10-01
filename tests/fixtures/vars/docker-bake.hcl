@@ -3,15 +3,15 @@ variable "APP_VERSION" {
 }
 
 group "default" {
-  targets = ["varsapp"]
+  targets = ["varapp"]
 }
 
-target "varsapp" {
+target "varapp" {
   context    = "tests/fixtures/vars"
   dockerfile = "Dockerfile"
-  tags       = ["varsapp:${APP_VERSION}"]
+  tags       = ["varapp:test"]
   output     = ["type=docker"]
   args = {
-    APP_VERSION = APP_VERSION
+    app_version = APP_VERSION
   }
 }

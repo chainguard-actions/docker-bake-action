@@ -8,23 +8,29 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Set up Docker Buildx with named builder
-        id: buildx
+      - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd # v4.0.0
+        id: buildx
         with:
-          driver: docker-container
           install: true
+
+      - name: Create a named builder instance
+        id: create-builder
+        run: |
+          BUILDER_NAME="test-builder-$$"
+          docker buildx create --name "$BUILDER_NAME" --use
+          echo "name=$BUILDER_NAME" >> "$GITHUB_OUTPUT"
 
       - id: bake
         name: Run bake action with explicit builder input
         uses: .
         with:
           source: .
-          files: tests/fixtures/builder/docker-bake.hcl
-          targets: builderapp
+          files: tests/fixtures/basic/docker-bake.hcl
+          targets: myapp
           load: 'true'
           no-cache: 'true'
-          builder: ${{ steps.buildx.outputs.name }}
+          builder: ${{ steps.create-builder.outputs.name }}
 
       - name: Assert metadata output is non-empty
         env:
@@ -35,12 +41,17 @@ jobs:
             echo "FAIL: expected metadata output to be non-empty"
             exit 1
           fi
-          echo "PASS: metadata output is present"
+          echo "PASS: metadata output is present (builder input accepted)"
 
       - name: Assert built image exists in Docker
         run: |
-          if ! docker image inspect builderapp:test > /dev/null 2>&1; then
-            echo "FAIL: expected image builderapp:test to be loaded into Docker"
+          if ! docker image inspect myapp:test > /dev/null 2>&1; then
+            echo "FAIL: expected image myapp:test to be loaded into Docker"
             exit 1
           fi
-          echo "PASS: image builderapp:test found in Docker"
+          echo "PASS: image myapp:test found in Docker"
+
+      - name: Clean up named builder
+        if: always()
+        run: |
+          docker buildx rm "${{ steps.create-builder.outputs.name }}" || true
