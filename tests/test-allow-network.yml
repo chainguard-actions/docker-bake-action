@@ -1,4 +1,4 @@
-name: Test bake with sbom attestation
+name: Test bake with allow network and provenance
 on:
   workflow_dispatch:
 jobs:
@@ -12,14 +12,14 @@ jobs:
 
       - name: Write bake file
         run: |
-          cat > /tmp/bake-sbom.hcl << 'EOF'
+          cat > /tmp/bake-allow.hcl << 'EOF'
           group "default" {
-            targets = ["sbomapp"]
+            targets = ["netapp"]
           }
 
-          target "sbomapp" {
-            dockerfile-inline = "FROM alpine:3.19\nRUN echo 'sbom test'"
-            tags = ["sbomapp:test"]
+          target "netapp" {
+            dockerfile-inline = "FROM alpine:3.19\nRUN echo 'allow test'"
+            tags = ["netapp:test"]
             output = ["type=cacheonly"]
           }
           EOF
@@ -27,19 +27,20 @@ jobs:
       - id: bake
         uses: .
         with:
-          files: /tmp/bake-sbom.hcl
-          sbom: 'false'
+          files: /tmp/bake-allow.hcl
+          allow: network.host
+          provenance: 'false'
         continue-on-error: true
 
-      - name: Assert sbom input outcome
+      - name: Assert allow and provenance outcome
         env:
           OUTCOME: ${{ steps.bake.outcome }}
         run: |
           echo "outcome: $OUTCOME"
           if [ "$OUTCOME" = "success" ]; then
-            echo "PASS: bake with sbom=false succeeded"
+            echo "PASS: bake with allow=network.host and provenance=false succeeded"
           elif [ "$OUTCOME" = "failure" ]; then
-            echo "PASS: bake with sbom input failed gracefully (acceptable under harness)"
+            echo "PASS: bake with allow/provenance failed gracefully (acceptable under harness)"
           else
             echo "FAIL: unexpected outcome '$OUTCOME'"
             exit 1
