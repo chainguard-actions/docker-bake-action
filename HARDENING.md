@@ -16,7 +16,7 @@ Action **docker--bake-action/v6.9.0** was hardened automatically. 1 finding(s) w
 
 ### unpinned-uses (severity: high)
 
-Both subaction files reference `actions/github-script@v7` using a mutable version tag instead of a pinned 40-character commit SHA. This means a compromised or altered version of the action could be silently substituted, enabling a supply-chain attack. Each reference should be pinned to a full SHA, e.g. `actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7`.
+Both subactions reference `actions/github-script@v7`, a mutable tag rather than a pinned 40-character commit SHA. This means the action could silently change if the tag is moved, enabling a supply-chain attack. Each reference should be replaced with a full SHA pin, e.g. `actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7`.
 
 Locations:
 
@@ -31,9 +31,5 @@ Locations:
 
 **Notes:**
 
-Pinned `actions/github-script@v7` to `actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7` in both:
-- hardened/action/subaction/list-targets/action.yml (line 27)
-- hardened/action/subaction/matrix/action.yml (line 29)
-
-The SHA was resolved via lookup_action_sha and the mutable tag is retained as a comment for readability.
+Replaced `actions/github-script@v7` with `actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7` in both `subaction/list-targets/action.yml` (line 27) and `subaction/matrix/action.yml` (line 29). SHA was resolved via the GitHub refs API.
 

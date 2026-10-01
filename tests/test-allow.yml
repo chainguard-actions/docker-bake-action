@@ -12,9 +12,7 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Set up Docker Buildx
-        run: |
-          docker buildx create --use --name test-builder-allow --driver docker-container || docker buildx use test-builder-allow || true
-          docker buildx inspect --bootstrap || true
+        uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3.10.0
 
       - id: bake
         uses: .
@@ -34,4 +32,4 @@ jobs:
             echo "FAIL: expected metadata output to be non-empty"
             exit 1
           fi
-          echo "PASS: metadata output is present"
+          echo "PASS: metadata output is present with allow=network.host"
