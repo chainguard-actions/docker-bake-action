@@ -11,17 +11,18 @@ jobs:
         uses: .
         with:
           files: tests/fixtures/bake/docker-bake.hcl
+          targets: app
           call: print
           provenance: 'false'
         continue-on-error: true
 
-      - name: Assert bake with provenance input ran
+      - name: Assert bake ran with provenance input
         env:
           OUTCOME: ${{ steps.bake.outcome }}
         run: |
           echo "outcome: $OUTCOME"
           if [ "$OUTCOME" = "success" ]; then
-            echo "PASS: bake with provenance=false succeeded"
+            echo "PASS: bake call=print with provenance=false succeeded"
           elif [ "$OUTCOME" = "failure" ]; then
             echo "PASS: bake failed gracefully (acceptable in harness environment)"
           else

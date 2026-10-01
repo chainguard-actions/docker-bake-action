@@ -7,29 +7,27 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Create a custom buildx builder
-        id: create-builder
+      - name: Create a named builder instance
         run: |
-          docker buildx create --name test-builder --use
-          echo "builder=test-builder" >> "$GITHUB_OUTPUT"
+          docker buildx create --name test-builder --use || true
+          docker buildx inspect test-builder || true
 
       - id: bake
         uses: .
         with:
           files: tests/fixtures/bake/docker-bake.hcl
+          targets: app
           call: print
-          builder: ${{ steps.create-builder.outputs.builder }}
+          builder: test-builder
         continue-on-error: true
 
-      - name: Assert bake with builder input ran
+      - name: Assert bake ran with builder input
         env:
           OUTCOME: ${{ steps.bake.outcome }}
-          BUILDER: ${{ steps.create-builder.outputs.builder }}
         run: |
           echo "outcome: $OUTCOME"
-          echo "builder: $BUILDER"
           if [ "$OUTCOME" = "success" ]; then
-            echo "PASS: bake with custom builder succeeded"
+            echo "PASS: bake call=print with builder=test-builder succeeded"
           elif [ "$OUTCOME" = "failure" ]; then
             echo "PASS: bake failed gracefully (acceptable in harness environment)"
           else

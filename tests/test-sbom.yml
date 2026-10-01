@@ -11,17 +11,18 @@ jobs:
         uses: .
         with:
           files: tests/fixtures/bake/docker-bake.hcl
+          targets: app
           call: print
           sbom: 'false'
         continue-on-error: true
 
-      - name: Assert bake with sbom input ran
+      - name: Assert bake ran with sbom input
         env:
           OUTCOME: ${{ steps.bake.outcome }}
         run: |
           echo "outcome: $OUTCOME"
           if [ "$OUTCOME" = "success" ]; then
-            echo "PASS: bake with sbom=false succeeded"
+            echo "PASS: bake call=print with sbom=false succeeded"
           elif [ "$OUTCOME" = "failure" ]; then
             echo "PASS: bake failed gracefully (acceptable in harness environment)"
           else

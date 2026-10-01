@@ -11,17 +11,18 @@ jobs:
         uses: .
         with:
           files: tests/fixtures/bake/docker-bake.hcl
+          targets: app
           call: print
           allow: network.host
         continue-on-error: true
 
-      - name: Assert bake with allow input ran
+      - name: Assert bake ran with allow input
         env:
           OUTCOME: ${{ steps.bake.outcome }}
         run: |
           echo "outcome: $OUTCOME"
           if [ "$OUTCOME" = "success" ]; then
-            echo "PASS: bake with allow=network.host succeeded"
+            echo "PASS: bake call=print with allow=network.host succeeded"
           elif [ "$OUTCOME" = "failure" ]; then
             echo "PASS: bake failed gracefully (acceptable in harness environment)"
           else
