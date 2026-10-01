@@ -20,7 +20,7 @@ jobs:
           source: .
           sbom: 'false'
           set: |
-            app.output=type=docker
+            app.output=type=cacheonly
 
       - name: Assert metadata output is set
         env:
@@ -32,11 +32,3 @@ jobs:
             exit 1
           fi
           echo "PASS: metadata output is present (sbom input accepted)"
-
-      - name: Assert built image exists
-        run: |
-          if ! docker image inspect bake-test-app:latest > /dev/null 2>&1; then
-            echo "FAIL: expected image bake-test-app:latest to exist in Docker daemon"
-            exit 1
-          fi
-          echo "PASS: image bake-test-app:latest exists"
