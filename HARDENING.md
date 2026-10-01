@@ -16,12 +16,12 @@ Action **docker--bake-action/v6.9.0** was hardened automatically. 1 finding(s) w
 
 ### unpinned-uses (severity: high)
 
-Both subaction files reference `actions/github-script@v7`, which is a mutable tag reference rather than a pinned 40-character commit SHA. This exposes the action to supply-chain attacks if the tag is moved to point to a different (potentially malicious) commit. Each should be pinned to a full SHA, e.g. `actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7`.
+Both subaction files reference `actions/github-script@v7` using a mutable version tag instead of a pinned 40-character commit SHA. This means a compromised or altered version of the action could be silently substituted, enabling a supply-chain attack. Each reference should be pinned to a full SHA, e.g. `actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7`.
 
 Locations:
 
-- `subaction/list-targets/action.yml:26`
-- `subaction/matrix/action.yml:28`
+- `subaction/list-targets/action.yml:27`
+- `subaction/matrix/action.yml:29`
 
 ## Iteration Notes
 
@@ -31,5 +31,9 @@ Locations:
 
 **Notes:**
 
-Pinned `actions/github-script@v7` to its full commit SHA `f28e40c7f34bde8b3046d885e986cb6290c5673b` in both `subaction/list-targets/action.yml` (line 26) and `subaction/matrix/action.yml` (line 28). The mutable tag reference is preserved as a comment for readability.
+Pinned `actions/github-script@v7` to `actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7` in both:
+- hardened/action/subaction/list-targets/action.yml (line 27)
+- hardened/action/subaction/matrix/action.yml (line 29)
+
+The SHA was resolved via lookup_action_sha and the mutable tag is retained as a comment for readability.
 
