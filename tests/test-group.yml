@@ -1,4 +1,4 @@
-name: Test bake sbom input
+name: Test bake group targets
 on:
   workflow_dispatch:
 
@@ -11,17 +11,13 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd # v4.0.0
 
-      - name: Bake with sbom disabled
+      - name: Bake default group (img1 + img2) with load
         id: bake
         uses: .
         with:
           source: .
-          files: tests/fixtures/simple/docker-bake.hcl
-          targets: app
+          files: tests/fixtures/group/docker-bake.hcl
           load: 'true'
-          sbom: 'false'
-          set: |
-            app.tags=test-bake-sbom:local
 
       - name: Assert metadata output is set
         env:
@@ -34,10 +30,15 @@ jobs:
           fi
           echo "PASS: metadata output is non-empty"
 
-      - name: Assert image was loaded
+      - name: Assert both images were loaded
         run: |
-          if ! docker image inspect test-bake-sbom:local > /dev/null 2>&1; then
-            echo "FAIL: image test-bake-sbom:local not found in Docker"
-            exit 1
-          fi
-          echo "PASS: image loaded successfully with sbom=false"
+          FAIL=0
+          for img in test-bake-img1:local test-bake-img2:local; do
+            if docker image inspect "$img" > /dev/null 2>&1; then
+              echo "PASS: image $img loaded"
+            else
+              echo "FAIL: image $img not found"
+              FAIL=1
+            fi
+          done
+          exit $FAIL
