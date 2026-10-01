@@ -16,8 +16,8 @@ jobs:
         uses: .
         with:
           source: .
-          files: tests/fixtures/provenance/docker-bake.hcl
-          targets: provapp
+          files: tests/fixtures/sbom/docker-bake.hcl
+          targets: sbomapp
           load: 'true'
           no-cache: 'true'
           sbom: 'false'
@@ -31,12 +31,12 @@ jobs:
             echo "FAIL: expected metadata output to be non-empty"
             exit 1
           fi
-          echo "PASS: metadata output is present (sbom input accepted)"
+          echo "PASS: metadata output is present"
 
       - name: Assert built image exists in Docker
         run: |
-          if ! docker image inspect provapp:test > /dev/null 2>&1; then
-            echo "FAIL: expected image provapp:test to be loaded into Docker"
+          if ! docker image inspect sbomapp:test > /dev/null 2>&1; then
+            echo "FAIL: expected image sbomapp:test to be loaded into Docker"
             exit 1
           fi
-          echo "PASS: image provapp:test found in Docker"
+          echo "PASS: image sbomapp:test found in Docker"

@@ -12,6 +12,6 @@ target "varapp" {
   tags       = ["varapp:test"]
   output     = ["type=docker"]
   args = {
-    app_version = APP_VERSION
+    APP_VERSION = APP_VERSION
   }
 }

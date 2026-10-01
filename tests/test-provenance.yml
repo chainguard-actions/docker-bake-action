@@ -31,7 +31,7 @@ jobs:
             echo "FAIL: expected metadata output to be non-empty"
             exit 1
           fi
-          echo "PASS: metadata output is present (provenance input accepted)"
+          echo "PASS: metadata output is present"
 
       - name: Assert built image exists in Docker
         run: |
