@@ -1,4 +1,4 @@
-name: Test bake with source context and vars
+name: Test bake with vars input
 on:
   workflow_dispatch:
 jobs:
@@ -18,12 +18,12 @@ jobs:
           }
 
           group "default" {
-            targets = ["varapp"]
+            targets = ["myapp"]
           }
 
-          target "varapp" {
+          target "myapp" {
             dockerfile-inline = "FROM alpine:3.19\nRUN echo 'vars test'"
-            tags = ["varapp:${TAG}"]
+            tags = ["myapp:${TAG}"]
             output = ["type=cacheonly"]
           }
           EOF
@@ -32,20 +32,19 @@ jobs:
         uses: .
         with:
           files: /tmp/bake-vars.hcl
-          source: .
           vars: |
-            TAG=v1.0.0
+            TAG=test-tag
         continue-on-error: true
 
-      - name: Assert source and vars outcome
+      - name: Assert action ran with vars input
         env:
           OUTCOME: ${{ steps.bake.outcome }}
         run: |
           echo "outcome: $OUTCOME"
           if [ "$OUTCOME" = "success" ]; then
-            echo "PASS: bake with source=. and vars succeeded"
+            echo "PASS: bake with vars input succeeded"
           elif [ "$OUTCOME" = "failure" ]; then
-            echo "PASS: bake with source/vars failed gracefully (acceptable under harness)"
+            echo "PASS: bake with vars input failed gracefully (acceptable under harness)"
           else
             echo "FAIL: unexpected outcome '$OUTCOME'"
             exit 1

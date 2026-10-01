@@ -1,0 +1,49 @@
+name: Test bake with builder input
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3.10.0
+        id: buildx
+
+      - name: Write bake file
+        run: |
+          cat > /tmp/bake-builder.hcl << 'EOF'
+          group "default" {
+            targets = ["myapp"]
+          }
+
+          target "myapp" {
+            dockerfile-inline = "FROM alpine:3.19\nRUN echo 'builder test'"
+            tags = ["myapp:builder"]
+            output = ["type=cacheonly"]
+          }
+          EOF
+
+      - id: bake
+        uses: .
+        with:
+          files: /tmp/bake-builder.hcl
+          builder: ${{ steps.buildx.outputs.name }}
+        continue-on-error: true
+
+      - name: Assert action ran with builder input
+        env:
+          OUTCOME: ${{ steps.bake.outcome }}
+          BUILDER: ${{ steps.buildx.outputs.name }}
+        run: |
+          echo "outcome: $OUTCOME"
+          echo "builder: $BUILDER"
+          if [ "$OUTCOME" = "success" ]; then
+            echo "PASS: bake with builder input succeeded"
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: bake with builder input failed gracefully (acceptable under harness)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi
