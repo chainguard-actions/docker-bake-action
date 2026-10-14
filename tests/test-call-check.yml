@@ -1,0 +1,31 @@
+name: Test bake call check
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+
+      - id: bake
+        uses: .
+        with:
+          source: .
+          files: tests/fixtures/bake/docker-bake.hcl
+          targets: hello
+          call: check
+          push: 'false'
+
+      - name: Assert step completed
+        env:
+          OUTCOME: ${{ steps.bake.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          if [ "$OUTCOME" != "success" ]; then
+            echo "FAIL: expected bake call=check to succeed, got: $OUTCOME"
+            exit 1
+          fi
+          echo "PASS: bake call=check completed successfully"
